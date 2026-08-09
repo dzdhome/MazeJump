@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JumpGameMonoGame")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ce6a81afc3aa6339f84b04212678c644b1499fa5")]
 [assembly: System.Reflection.AssemblyProductAttribute("JumpGameMonoGame")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JumpGameMonoGame")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

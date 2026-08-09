@@ -33,3 +33,7 @@ C:\Users\PC5\Desktop\jump\JumpGameMonoGame\obj\Release\net8.0-windows\refint\Jum
 C:\Users\PC5\Desktop\jump\JumpGameMonoGame\obj\Release\net8.0-windows\JumpGameMonoGame.pdb
 C:\Users\PC5\Desktop\jump\JumpGameMonoGame\obj\Release\net8.0-windows\JumpGameMonoGame.genruntimeconfig.cache
 C:\Users\PC5\Desktop\jump\JumpGameMonoGame\obj\Release\net8.0-windows\ref\JumpGameMonoGame.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\bin\Release\net8.0-windows\Microsoft.Win32.SystemEvents.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\bin\Release\net8.0-windows\System.Drawing.Common.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\bin\Release\net8.0-windows\runtimes\win\lib\net8.0\Microsoft.Win32.SystemEvents.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\obj\Release\net8.0-windows\JumpGameMonoGame.sourcelink.json
