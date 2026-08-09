@@ -1,0 +1,8 @@
+{
+  "Gravity": 1400,
+  "Speed": 260,
+  "JumpVelocity": 490,
+  "MaxFallSpeed": 1200,
+  "CoyoteTime": 0.1,
+  "JumpBufferTime": 0.12
+}
