@@ -3,7 +3,7 @@
 ;   dotnet publish MazeJump.csproj -c Release -r win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -o publish\win-x64
 
 #define MyAppName "MazeJump"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "MazeJump"
 #define MyAppExeName "MazeJump.exe"
 #define MyPublishDir "..\publish\win-x64"
