@@ -1,6 +1,4 @@
-﻿using JumpGameMonoGame;
-
-using (var game = new JumpGame())
+﻿using (var game = new MazeJump.MazeJump())
 {
     game.Run();
 }

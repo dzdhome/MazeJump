@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 
-namespace JumpGameMonoGame
+namespace MazeJump
 {
     /// <summary>
     /// Gameplay tuning values. Persisted to config.json so they can be tweaked without recompiling.

@@ -6,7 +6,7 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 Write-Host "==> Step 1/2: dotnet publish (win-x64, self-contained)" -ForegroundColor Cyan
-dotnet publish JumpGameMonoGame.csproj -c Release -r win-x64 --self-contained true `
+dotnet publish MazeJump.csproj -c Release -r win-x64 --self-contained true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
     -o "$root\publish\win-x64"
 
@@ -21,4 +21,4 @@ if (-not (Test-Path $iscc)) {
 Write-Host "==> Step 2/2: compiling installer with Inno Setup" -ForegroundColor Cyan
 & $iscc "$root\installer\setup.iss"
 
-Write-Host "Done! Installer created at installer\output\JumpGameMonoGame_Setup_win64.exe" -ForegroundColor Green
+Write-Host "Done! Installer created at installer\output\MazeJump_Setup_win64.exe" -ForegroundColor Green

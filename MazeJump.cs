@@ -5,9 +5,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace JumpGameMonoGame
+namespace MazeJump
 {
-    public class JumpGame : Game
+    public class MazeJump : Game
     {
         private enum GameMode
         {
@@ -94,7 +94,7 @@ namespace JumpGameMonoGame
         // Rendering
         private Texture2D pixelTexture = null!;
 
-        public JumpGame()
+        public MazeJump()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameColor = Microsoft.Xna.Framework.Color;
 
-namespace JumpGameMonoGame
+namespace MazeJump
 {
     /// <summary>
     /// Renders text to mono-game textures at runtime using System.Drawing.

@@ -1,6 +1,6 @@
 using System;
 
-namespace JumpGameMonoGame
+namespace MazeJump
 {
     /// <summary>
     /// Map data represented as a grid of tile type ints.

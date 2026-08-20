@@ -1,11 +1,11 @@
-; Inno Setup 脚本 - JumpGameMonoGame (Windows 64位 安装包)
+; Inno Setup 脚本 - MazeJump (Windows 64位 安装包)
 ; 编译前请先执行发布命令生成 publish\win-x64 目录：
-;   dotnet publish JumpGameMonoGame.csproj -c Release -r win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -o publish\win-x64
+;   dotnet publish MazeJump.csproj -c Release -r win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -o publish\win-x64
 
-#define MyAppName "JumpGameMonoGame"
+#define MyAppName "MazeJump"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "JumpGameMonoGame"
-#define MyAppExeName "JumpGameMonoGame.exe"
+#define MyAppPublisher "MazeJump"
+#define MyAppExeName "MazeJump.exe"
 #define MyPublishDir "..\publish\win-x64"
 
 [Setup]
@@ -20,7 +20,7 @@ DisableProgramGroupPage=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=output
-OutputBaseFilename=JumpGameMonoGame_Setup_win64
+OutputBaseFilename=MazeJump_Setup_win64
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace JumpGameMonoGame
+namespace MazeJump
 {
     /// <summary>
     /// A collection of maps stored in a single JSON file.
