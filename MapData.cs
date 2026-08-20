@@ -15,6 +15,9 @@ namespace MazeJump
         public const int TileExit = 3;
         public const int TileLava = 4;
         public const int TileCheckpoint = 5;
+        // Portal (传送点) tiles - always placed in pairs (entry -> exit), one-way
+        public const int TilePortalEntry = 6;
+        public const int TilePortalExit = 7;
 
         public int[][] Grid { get; set; }
 

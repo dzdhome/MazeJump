@@ -17,9 +17,9 @@ namespace MazeJump
         }
 
         // Editor tile palette
-        private static readonly int[] EditorTileTypes = { MapData.TileEmpty, MapData.TileSolid, MapData.TileEntrance, MapData.TileExit, MapData.TileLava, MapData.TileCheckpoint };
-        private static readonly string[] EditorTileNames = { "空", "方块", "入口", "出口", "岩浆", "记录点" };
-        private static readonly Color[] EditorTileColors = { Color.Gray, Color.LightSlateGray, Color.LimeGreen, Color.Gold, Color.OrangeRed, Color.DodgerBlue };
+        private static readonly int[] EditorTileTypes = { MapData.TileEmpty, MapData.TileSolid, MapData.TileEntrance, MapData.TileExit, MapData.TileLava, MapData.TileCheckpoint, MapData.TilePortalEntry, MapData.TilePortalExit };
+        private static readonly string[] EditorTileNames = { "空", "方块", "入口", "出口", "岩浆", "记录点", "传送入口", "传送出口" };
+        private static readonly Color[] EditorTileColors = { Color.Gray, Color.LightSlateGray, Color.LimeGreen, Color.Gold, Color.OrangeRed, Color.DodgerBlue, Color.MediumPurple, Color.Magenta };
 
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch = null!;
@@ -46,6 +46,9 @@ namespace MazeJump
         private float checkpointX;
         private float checkpointY;
 
+        // Portal (传送点) cooldown to prevent instant re-trigger after teleporting (seconds)
+        private float portalCooldownTimer;
+
         // Input state (edge detection)
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
@@ -66,7 +69,7 @@ namespace MazeJump
         private bool editorDirty;
         private int currentMapIndex = 0; // 0-based index into mapCollection.Maps
         private const int MaxMapCount = 9;
-        private Rectangle[] editorTileButtons = new Rectangle[6];
+        private Rectangle[] editorTileButtons = new Rectangle[8];
         private Rectangle editorPrevMapButton;
         private Rectangle editorNextMapButton;
         private Rectangle editorExitButton;
@@ -281,6 +284,12 @@ namespace MazeJump
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (dt > 0.05f) dt = 0.05f; // Cap max frame time
 
+            // Advance the portal cooldown timer
+            if (portalCooldownTimer > 0f)
+            {
+                portalCooldownTimer -= dt;
+            }
+
             float speed = config.Speed;
             float gravity = config.Gravity;
             float jumpSpeed = config.JumpVelocity;
@@ -326,6 +335,13 @@ namespace MazeJump
                 checkpointX = playerX;
                 checkpointY = playerY;
                 statusMessage = "已激活记录点！死亡后将回到这里。";
+            }
+
+            // Check portal entry (传送点) - teleport to the portal exit (one-way: entry -> exit)
+            if (portalCooldownTimer <= 0f && CheckTileCollision(MapData.TilePortalEntry))
+            {
+                TeleportToPortalExit();
+                return;
             }
 
             // Check lava collision - respawn at last checkpoint (or entrance if none)
@@ -465,6 +481,31 @@ namespace MazeJump
             return false;
         }
 
+        /// <summary>
+        /// Teleports the player to the portal exit tile. The portal is one-way:
+        /// only touching the entry teleports the player (touching the exit does nothing).
+        /// A short cooldown prevents the player from being stuck in an entry/exit loop.
+        /// </summary>
+        private void TeleportToPortalExit()
+        {
+            var exitPos = FindTile(MapData.TilePortalExit);
+            if (exitPos.HasValue)
+            {
+                playerX = exitPos.Value.Col * TileSize + (TileSize - PlayerWidth) / 2;
+                playerY = exitPos.Value.Row * TileSize - PlayerHeight;
+                statusMessage = "已通过传送点！";
+            }
+            else
+            {
+                statusMessage = "这里没有对应的传送出口。";
+            }
+            playerVx = 0;
+            playerVy = 0;
+
+            // Cooldown so touching the entry again (e.g. if it is near the exit) won't instantly re-trigger
+            portalCooldownTimer = 0.5f;
+        }
+
         private MapData CurrentMap => mapCollection.Maps[currentMapIndex];
 
         /// <summary>
@@ -499,6 +540,7 @@ namespace MazeJump
             jumpConsumed = false;
             coyoteTimer = 0f;
             jumpBufferTimer = 0f;
+            portalCooldownTimer = 0f;
         }
 
         /// <summary>
@@ -538,29 +580,25 @@ namespace MazeJump
 
             // Build toolbar button rectangles
             int topY = MapData.Rows * TileSize + 8;
-            int btnW = 88;
-            int btnH = 24;
+            int btnW = 80;
+            int btnH = 26;
+            int gap = 6;
             int x = 10;
             for (int i = 0; i < editorTileButtons.Length; i++)
             {
                 editorTileButtons[i] = new Rectangle(x, topY, btnW, btnH);
-                x += btnW + 8;
+                x += btnW + gap;
             }
 
-            // Map navigation buttons - placed after the tile buttons with extra spacing
-            int mapX = x + 20;
-            editorPrevMapButton = new Rectangle(mapX, topY, 30, btnH);
-            editorNextMapButton = new Rectangle(mapX + 40, topY, 30, btnH);
+            // Row 2: map navigation buttons + action buttons
+            int row2Y = topY + btnH + 10;
+            editorPrevMapButton = new Rectangle(10, row2Y, 40, btnH);
+            editorNextMapButton = new Rectangle(160, row2Y, 40, btnH);
+            editorExitButton = new Rectangle(240, row2Y, 80, btnH);
+            editorSaveButton = new Rectangle(330, row2Y, 70, btnH);
+            editorLoadButton = new Rectangle(410, row2Y, 70, btnH);
 
-            // Exit editor button (placed to the right of the map navigation)
-            editorExitButton = new Rectangle(mapX + 150, topY, 70, btnH);
-
-            // Save / load buttons on second row
-            int row2Y = MapData.Rows * TileSize + 40;
-            editorSaveButton = new Rectangle(10, row2Y, 70, btnH);
-            editorLoadButton = new Rectangle(88, row2Y, 70, btnH);
-
-            statusMessage = "左键绘制，右键擦除；1-6 选方块；鼠标或 [ ] 切换地图；S 保存，L 读取，E 退出。";
+            statusMessage = "左键绘制，右键擦除；1-8 选方块；鼠标或 [ ] 切换地图；S 保存，L 读取，E 退出。传送点每图仅一对（入口→出口）。";
         }
 
         private void UpdateEditor(KeyboardState keyboardState, MouseState mouseState)
@@ -606,6 +644,8 @@ namespace MazeJump
             if (WasKeyPressed(keyboardState, Keys.D4)) editorSelectedTile = MapData.TileExit;
             if (WasKeyPressed(keyboardState, Keys.D5)) editorSelectedTile = MapData.TileLava;
             if (WasKeyPressed(keyboardState, Keys.D6)) editorSelectedTile = MapData.TileCheckpoint;
+            if (WasKeyPressed(keyboardState, Keys.D7)) editorSelectedTile = MapData.TilePortalEntry;
+            if (WasKeyPressed(keyboardState, Keys.D8)) editorSelectedTile = MapData.TilePortalExit;
 
             // Mouse click on toolbar buttons
             if (WasLeftClicked(mouseState))
@@ -651,7 +691,7 @@ namespace MazeJump
                 {
                     if (CurrentMap.Grid[row][col] != editorSelectedTile)
                     {
-                        CurrentMap.Grid[row][col] = editorSelectedTile;
+                        PlaceTile(col, row, editorSelectedTile);
                         editorDirty = true;
                     }
                 }
@@ -661,6 +701,71 @@ namespace MazeJump
                     {
                         CurrentMap.Grid[row][col] = MapData.TileEmpty;
                         editorDirty = true;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Places a tile at the given cell. When placing a portal entry or exit,
+        /// any existing portal tile of the same kind is cleared first so that
+        /// every map keeps at most one portal pair (单入口 + 单出口).
+        /// </summary>
+        private void PlaceTile(int col, int row, int type)
+        {
+            if (type == MapData.TilePortalEntry)
+            {
+                ClearPortalTiles(type);
+            }
+            else if (type == MapData.TilePortalExit)
+            {
+                ClearPortalTiles(type);
+            }
+            CurrentMap.Grid[row][col] = type;
+        }
+
+        /// <summary>
+        /// Removes all tiles of the given type from the current map.
+        /// </summary>
+        private void ClearPortalTiles(int type)
+        {
+            var map = CurrentMap;
+            for (int r = 0; r < MapData.Rows; r++)
+            {
+                for (int c = 0; c < MapData.Columns; c++)
+                {
+                    if (map.Grid[r][c] == type)
+                    {
+                        map.Grid[r][c] = MapData.TileEmpty;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Enforces the one-portal-pair rule: keeps only the first portal entry and
+        /// first portal exit found on a map and clears any duplicates.
+        /// </summary>
+        private static void NormalizePortals(MapData map)
+        {
+            if (map == null || map.Grid == null) return;
+
+            bool seenEntry = false;
+            bool seenExit = false;
+            for (int row = 0; row < MapData.Rows; row++)
+            {
+                for (int col = 0; col < MapData.Columns; col++)
+                {
+                    int type = map.Grid[row][col];
+                    if (type == MapData.TilePortalEntry)
+                    {
+                        if (seenEntry) map.Grid[row][col] = MapData.TileEmpty;
+                        else seenEntry = true;
+                    }
+                    else if (type == MapData.TilePortalExit)
+                    {
+                        if (seenExit) map.Grid[row][col] = MapData.TileEmpty;
+                        else seenExit = true;
                     }
                 }
             }
@@ -815,6 +920,15 @@ namespace MazeJump
             {
                 mapCollection = MapCollection.CreateDefault(MaxMapCount);
             }
+
+            // Enforce at most one portal pair (entry + exit) on every map
+            if (mapCollection != null && mapCollection.Maps != null)
+            {
+                foreach (var map in mapCollection.Maps)
+                {
+                    NormalizePortals(map);
+                }
+            }
         }
 
         /// <summary>
@@ -959,33 +1073,26 @@ namespace MazeJump
             }
 
             // Map navigation buttons (with label between them)
-            // 1. 绘制左按钮
             var prevRect = editorPrevMapButton;
             DrawFilledRectangle(prevRect, new Color(50, 50, 70));
             DrawRectangleOutline(prevRect, Color.Gray);
-            DrawText("◀", 14, new Vector2(prevRect.X + 8, prevRect.Y + 2), Color.White);
+            DrawText("◀", 14, new Vector2(prevRect.X + 11, prevRect.Y + 2), Color.White);
 
-            // 2. 绘制中间文字 (在左按钮右侧，留出适量间距，如 38 像素)
             DrawText($"地图 {currentMapIndex + 1}/{MaxMapCount}", 14,
-                new Vector2(prevRect.X + 38, prevRect.Y + 2), Color.White);
+                new Vector2(prevRect.X + 48, prevRect.Y + 2), Color.White);
 
-            // 3. 重新设置右按钮的位置：位于左按钮 + 间距（例如 110 像素，确保避开文字）
-            // 如果你的 editorNextMapButton 本身就有独立 Rect，可以直接更新它的 X 坐标
             var nextRect = editorNextMapButton;
-            nextRect.X = prevRect.X + 110; // 调整此数值以留出文本空间
-            editorNextMapButton = nextRect; // 更新按钮碰撞/点击区域
-
             DrawFilledRectangle(nextRect, new Color(50, 50, 70));
             DrawRectangleOutline(nextRect, Color.Gray);
-            DrawText("▶", 14, new Vector2(nextRect.X + 8, nextRect.Y + 2), Color.White);
+            DrawText("▶", 14, new Vector2(nextRect.X + 11, nextRect.Y + 2), Color.White);
 
-            // Exit editor button (to the right of map navigation)
+            // Exit editor button
             var exitRect = editorExitButton;
             DrawFilledRectangle(exitRect, new Color(80, 40, 40));
             DrawRectangleOutline(exitRect, Color.Red);
             DrawText("退出编辑", 13, new Vector2(exitRect.X + 10, exitRect.Y + 3), Color.White);
 
-            // Row 2: save / load buttons
+            // Save / load buttons
             var saveRect = editorSaveButton;
             var loadRect = editorLoadButton;
             DrawFilledRectangle(saveRect, new Color(50, 80, 50));
@@ -997,7 +1104,7 @@ namespace MazeJump
 
             // Status message (operation hints and feedback)
             string dirtyText = editorDirty ? "（未保存）" : "";
-            DrawText(statusMessage, 13, new Vector2(170, MapData.Rows * TileSize + 46), editorDirty ? Color.Orange : Color.LightGreen);
+            DrawText(statusMessage, 13, new Vector2(10, MapData.Rows * TileSize + 74), editorDirty ? Color.Orange : Color.LightGreen);
         }
 
         private void DrawSettingsUI()
@@ -1067,6 +1174,8 @@ namespace MazeJump
                         MapData.TileExit => Color.Gold,
                         MapData.TileLava => Color.OrangeRed,
                         MapData.TileCheckpoint => Color.DodgerBlue,
+                        MapData.TilePortalEntry => Color.MediumPurple,
+                        MapData.TilePortalExit => Color.Magenta,
                         _ => Color.White
                     };
 
@@ -1081,6 +1190,19 @@ namespace MazeJump
                         DrawFilledRectangle(pole, Color.White);
                         DrawFilledRectangle(flag, Color.White);
                         DrawRectangleOutline(flag, Color.LightSkyBlue);
+                    }
+                    // Draw an arrow marker on the portal entry pointing toward the exit (direction of teleport)
+                    else if (type == MapData.TilePortalEntry)
+                    {
+                        DrawFilledRectangle(new Rectangle(rect.X + 5, rect.Y + 16, 24, 6), Color.White);
+                        DrawFilledRectangle(new Rectangle(rect.X + 30, rect.Y + 14, 7, 10), Color.White);
+                        DrawRectangleOutline(new Rectangle(rect.X + 5, rect.Y + 16, 24, 6), Color.LightSkyBlue);
+                    }
+                    // Draw a target marker on the portal exit
+                    else if (type == MapData.TilePortalExit)
+                    {
+                        DrawRectangleOutline(new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), Color.White);
+                        DrawFilledRectangle(new Rectangle(rect.X + 16, rect.Y + 16, 8, 8), Color.White);
                     }
                 }
             }
