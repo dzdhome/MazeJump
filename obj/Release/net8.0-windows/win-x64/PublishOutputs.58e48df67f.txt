@@ -1,0 +1,11 @@
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\JumpGameMonoGame.exe
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\JumpGameMonoGame.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\JumpGameMonoGame.deps.json
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\JumpGameMonoGame.runtimeconfig.json
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\JumpGameMonoGame.pdb
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\Microsoft.Win32.SystemEvents.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\MonoGame.Framework.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\NVorbis.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\System.Drawing.Common.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\openal.dll
+C:\Users\PC5\Desktop\jump\JumpGameMonoGame\publish\win-x64\SDL2.dll

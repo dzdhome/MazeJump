@@ -410,11 +410,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\PC5\\Desktop\\jump\\JumpGameMonoGame\\JumpGameMonoGame.csproj",
+      "projectUniqueName": "C:\\Users\\PC5\\Desktop\\jump\\JumpGameMonoGame\\JumpGameMonoGame.csproj",
       "projectName": "JumpGameMonoGame",
-      "projectPath": "c:\\Users\\PC5\\Desktop\\jump\\JumpGameMonoGame\\JumpGameMonoGame.csproj",
+      "projectPath": "C:\\Users\\PC5\\Desktop\\jump\\JumpGameMonoGame\\JumpGameMonoGame.csproj",
       "packagesPath": "C:\\Users\\PC5\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\PC5\\Desktop\\jump\\JumpGameMonoGame\\obj\\",
+      "outputPath": "C:\\Users\\PC5\\Desktop\\jump\\JumpGameMonoGame\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\PC5\\AppData\\Roaming\\NuGet\\NuGet.Config"

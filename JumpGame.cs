@@ -17,9 +17,9 @@ namespace JumpGameMonoGame
         }
 
         // Editor tile palette
-        private static readonly int[] EditorTileTypes = { MapData.TileEmpty, MapData.TileSolid, MapData.TileEntrance, MapData.TileExit, MapData.TileLava };
-        private static readonly string[] EditorTileNames = { "空", "方块", "入口", "出口", "岩浆" };
-        private static readonly Color[] EditorTileColors = { Color.Gray, Color.LightSlateGray, Color.LimeGreen, Color.Gold, Color.OrangeRed };
+        private static readonly int[] EditorTileTypes = { MapData.TileEmpty, MapData.TileSolid, MapData.TileEntrance, MapData.TileExit, MapData.TileLava, MapData.TileCheckpoint };
+        private static readonly string[] EditorTileNames = { "空", "方块", "入口", "出口", "岩浆", "记录点" };
+        private static readonly Color[] EditorTileColors = { Color.Gray, Color.LightSlateGray, Color.LimeGreen, Color.Gold, Color.OrangeRed, Color.DodgerBlue };
 
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch = null!;
@@ -41,6 +41,11 @@ namespace JumpGameMonoGame
         private bool win;
         private string statusMessage = string.Empty;
 
+        // Checkpoint (记录点) state
+        private bool hasCheckpoint;
+        private float checkpointX;
+        private float checkpointY;
+
         // Input state (edge detection)
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
@@ -61,7 +66,7 @@ namespace JumpGameMonoGame
         private bool editorDirty;
         private int currentMapIndex = 0; // 0-based index into mapCollection.Maps
         private const int MaxMapCount = 9;
-        private Rectangle[] editorTileButtons = new Rectangle[5];
+        private Rectangle[] editorTileButtons = new Rectangle[6];
         private Rectangle editorPrevMapButton;
         private Rectangle editorNextMapButton;
         private Rectangle editorExitButton;
@@ -186,12 +191,11 @@ namespace JumpGameMonoGame
 
         private void UpdatePlay(KeyboardState keyboardState, MouseState mouseState, GameTime gameTime)
         {
-            // Start/restart game (works both before starting and after winning)
-            if (WasKeyPressed(keyboardState, Keys.G) && !isPlaying)
+            // Start/restart game (works both before starting, while playing, and after winning)
+            if (WasKeyPressed(keyboardState, Keys.G))
             {
-                ResetPlayer();
-                isPlaying = true;
-                statusMessage = "游戏进行中：A/D 移动，W/空格 跳跃，ESC 退出。";
+                RestartFromStart();
+                return;
             }
 
             // Pause game
@@ -223,9 +227,7 @@ namespace JumpGameMonoGame
             {
                 if (playStartButton.Contains(mouseState.X, mouseState.Y))
                 {
-                    ResetPlayer();
-                    isPlaying = true;
-                    statusMessage = "游戏进行中：A/D 移动，W/空格 跳跃，ESC 退出。";
+                    RestartFromStart();
                 }
                 else if (playEditorButton.Contains(mouseState.X, mouseState.Y))
                 {
@@ -317,11 +319,27 @@ namespace JumpGameMonoGame
                 jumpConsumed = false;
             }
 
-            // Check lava collision
+            // Check checkpoint tile (记录点) - save respawn position
+            if (CheckTileCollision(MapData.TileCheckpoint))
+            {
+                hasCheckpoint = true;
+                checkpointX = playerX;
+                checkpointY = playerY;
+                statusMessage = "已激活记录点！死亡后将回到这里。";
+            }
+
+            // Check lava collision - respawn at last checkpoint (or entrance if none)
             if (CheckTileCollision(MapData.TileLava))
             {
-                ResetPlayer();
-                statusMessage = "踩到岩浆！已回到入口。";
+                ResetPlayer(hasCheckpoint);
+                if (hasCheckpoint)
+                {
+                    statusMessage = "踩到岩浆！已回到记录点。";
+                }
+                else
+                {
+                    statusMessage = "踩到岩浆！已回到入口。";
+                }
                 return;
             }
 
@@ -449,18 +467,30 @@ namespace JumpGameMonoGame
 
         private MapData CurrentMap => mapCollection.Maps[currentMapIndex];
 
-        private void ResetPlayer()
+        /// <summary>
+        /// Resets the player to the entrance, or to the last activated checkpoint if toCheckpoint is true.
+        /// Does not clear the checkpoint state so death keeps returning to the last checkpoint.
+        /// </summary>
+        private void ResetPlayer(bool toCheckpoint = false)
         {
-            var entrance = FindTile(MapData.TileEntrance);
-            if (entrance.HasValue)
+            if (toCheckpoint && hasCheckpoint)
             {
-                playerX = entrance.Value.Col * TileSize + (TileSize - PlayerWidth) / 2;
-                playerY = entrance.Value.Row * TileSize - PlayerHeight;
+                playerX = checkpointX;
+                playerY = checkpointY;
             }
             else
             {
-                playerX = TileSize + (TileSize - PlayerWidth) / 2;
-                playerY = MapData.Rows * TileSize - TileSize - PlayerHeight;
+                var entrance = FindTile(MapData.TileEntrance);
+                if (entrance.HasValue)
+                {
+                    playerX = entrance.Value.Col * TileSize + (TileSize - PlayerWidth) / 2;
+                    playerY = entrance.Value.Row * TileSize - PlayerHeight;
+                }
+                else
+                {
+                    playerX = TileSize + (TileSize - PlayerWidth) / 2;
+                    playerY = MapData.Rows * TileSize - TileSize - PlayerHeight;
+                }
             }
             playerVx = 0;
             playerVy = 0;
@@ -469,6 +499,18 @@ namespace JumpGameMonoGame
             jumpConsumed = false;
             coyoteTimer = 0f;
             jumpBufferTimer = 0f;
+        }
+
+        /// <summary>
+        /// Restarts the game from the very beginning (entrance), clearing any activated checkpoints.
+        /// Used by the "开始游戏" button and the G key.
+        /// </summary>
+        private void RestartFromStart()
+        {
+            hasCheckpoint = false;
+            ResetPlayer(false);
+            isPlaying = true;
+            statusMessage = "游戏进行中：A/D 移动，W/空格 跳跃，ESC 退出。";
         }
 
         private (int Row, int Col)? FindTile(int type)
@@ -518,7 +560,7 @@ namespace JumpGameMonoGame
             editorSaveButton = new Rectangle(10, row2Y, 70, btnH);
             editorLoadButton = new Rectangle(88, row2Y, 70, btnH);
 
-            statusMessage = "左键绘制，右键擦除；1-5 选方块；鼠标或 [ ] 切换地图；S 保存，L 读取，E 退出。";
+            statusMessage = "左键绘制，右键擦除；1-6 选方块；鼠标或 [ ] 切换地图；S 保存，L 读取，E 退出。";
         }
 
         private void UpdateEditor(KeyboardState keyboardState, MouseState mouseState)
@@ -563,6 +605,7 @@ namespace JumpGameMonoGame
             if (WasKeyPressed(keyboardState, Keys.D3)) editorSelectedTile = MapData.TileEntrance;
             if (WasKeyPressed(keyboardState, Keys.D4)) editorSelectedTile = MapData.TileExit;
             if (WasKeyPressed(keyboardState, Keys.D5)) editorSelectedTile = MapData.TileLava;
+            if (WasKeyPressed(keyboardState, Keys.D6)) editorSelectedTile = MapData.TileCheckpoint;
 
             // Mouse click on toolbar buttons
             if (WasLeftClicked(mouseState))
@@ -635,6 +678,7 @@ namespace JumpGameMonoGame
 
             currentMapIndex = newIndex;
             editorDirty = false;
+            hasCheckpoint = false;
             ResetPlayer();
             statusMessage = $"已切换到地图 {currentMapIndex + 1}/{MaxMapCount}。";
         }
@@ -884,7 +928,7 @@ namespace JumpGameMonoGame
                 new Vector2(prevRect.X + 38, prevRect.Y + 2), Color.White);
 
             // Key hints on second row right side
-            DrawText("G 开始/继续  E 编辑器  C 设置", 13,
+            DrawText("G 回到起点  E 编辑器  C 设置", 13,
                 new Vector2(230, MapData.Rows * TileSize + 44), Color.LightGray);
 
             // Status message below
@@ -1022,11 +1066,22 @@ namespace JumpGameMonoGame
                         MapData.TileEntrance => Color.LimeGreen,
                         MapData.TileExit => Color.Gold,
                         MapData.TileLava => Color.OrangeRed,
+                        MapData.TileCheckpoint => Color.DodgerBlue,
                         _ => Color.White
                     };
 
                     DrawFilledRectangle(rect, tileColor);
                     DrawRectangleOutline(rect, Color.White);
+
+                    // Draw a flag marker on checkpoint tiles so they stand out
+                    if (type == MapData.TileCheckpoint)
+                    {
+                        var pole = new Rectangle(rect.X + 10, rect.Y + 4, 2, rect.Height - 8);
+                        var flag = new Rectangle(rect.X + 12, rect.Y + 4, rect.Width - 20, 10);
+                        DrawFilledRectangle(pole, Color.White);
+                        DrawFilledRectangle(flag, Color.White);
+                        DrawRectangleOutline(flag, Color.LightSkyBlue);
+                    }
                 }
             }
 

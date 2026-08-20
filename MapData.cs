@@ -14,6 +14,7 @@ namespace JumpGameMonoGame
         public const int TileEntrance = 2;
         public const int TileExit = 3;
         public const int TileLava = 4;
+        public const int TileCheckpoint = 5;
 
         public int[][] Grid { get; set; }
 
@@ -61,6 +62,10 @@ namespace JumpGameMonoGame
 
             // Dangerous tiles
             map.Grid[Rows - 2][9] = TileLava;
+
+            // Checkpoint (记录点) tiles - before and after the lava
+            map.Grid[Rows - 1][4] = TileCheckpoint;
+            map.Grid[Rows - 2][14] = TileCheckpoint;
 
             // Entrance (spawn point) and exit
             map.Grid[Rows - 1][1] = TileEntrance;
